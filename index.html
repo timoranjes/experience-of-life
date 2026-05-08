@@ -29,28 +29,15 @@
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Header */
+  /* Header (sticky bar — font control only) */
   .header {
     position: sticky; top: 0; z-index: 50;
     background: #fff; border-bottom: 1px solid var(--border);
-    padding: 10px 16px 10px; min-height: 44px;
-  }
-  .header-top {
-    display: flex; align-items: center; justify-content: center; gap: 12px;
-    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
-    pointer-events: none;
-  }
-  .header-top h1 {
-    font-size: 15px; font-weight: 700; color: var(--accent);
-    white-space: nowrap; pointer-events: auto;
-  }
-  .header-top .subtitle {
-    font-size: 11px; font-weight: 400; color: var(--fold-text);
-    white-space: nowrap; pointer-events: auto;
+    padding: 8px 16px;
+    text-align: right;
   }
   .fs-control {
-    float: right;
-    display: flex; align-items: center; gap: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
     background: var(--accent-light); border-radius: 20px; padding: 4px 8px;
   }
   .fs-control button {
@@ -61,6 +48,19 @@
   }
   .fs-control button:active { background: var(--border); }
   .fs-control .fs-label { font-size: 12px; color: var(--fold-text); min-width: 32px; text-align: center; }
+
+  /* Chapter title (in content area) */
+  .chapter-title {
+    text-align: center; padding: 16px 16px 12px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .chapter-title h1 {
+    font-size: 16px; font-weight: 700; color: var(--accent); margin: 0;
+  }
+  .chapter-title .subtitle {
+    font-size: 12px; font-weight: 400; color: var(--fold-text); margin: 4px 0 0;
+  }
 
   /* Content */
   .content { padding: 16px 20px 60px; max-width: 680px; margin: 0 auto; }
@@ -127,15 +127,16 @@
 <body>
 
 <div class="header">
-  <div class="header-top">
-    <h1>生命的經歷 · 第十二篇</h1>
-    <span class="subtitle">接受聖靈的管治</span>
-  </div>
   <div class="fs-control">
     <button id="fs-down" aria-label="縮小字體">−</button>
     <span class="fs-label" id="fs-label">18</span>
     <button id="fs-up" aria-label="放大字體">+</button>
   </div>
+</div>
+
+<div class="chapter-title">
+  <h1>生命的經歷 · 第十二篇</h1>
+  <p class="subtitle">接受聖靈的管治</p>
 </div>
 
 <div class="content" id="content">
