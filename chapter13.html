@@ -430,6 +430,75 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
   opacity: 1;
 }
 
+/* Floating highlight button for mobile */
+.hl-float-btn {
+  position: absolute;
+  z-index: 150;
+  display: none;
+  padding: 8px 14px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  box-shadow: 0 3px 12px oklch(0 0 0 / 0.25);
+  cursor: pointer;
+  white-space: nowrap;
+  transform: translate(-50%, -100%);
+  transition: transform 0.15s, opacity 0.15s;
+}
+.hl-float-btn::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--accent);
+}
+.hl-float-btn.show {
+  display: block;
+}
+
+/* Color picker popup */
+.hl-color-popup {
+  position: absolute;
+  z-index: 151;
+  display: none;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px oklch(0 0 0 / 0.15);
+  transform: translate(-50%, -100%);
+  gap: 8px;
+  align-items: center;
+}
+.hl-color-popup.show {
+  display: flex;
+}
+.hl-color-popup::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--card-bg);
+}
+.hl-color-popup .mini-hl-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.hl-color-popup .mini-hl-btn:hover {
+  transform: scale(1.2);
+}
+
 /* === BOTTOM TOOLBAR === */
 .bottom-bar {
   position: fixed;
@@ -723,60 +792,176 @@ function setHighlightColor(color) {
   });
 }
 
-// === Highlight Selection ===
-document.addEventListener('mouseup', function(e) {
-  if (!highlightMode) return;
-  
+// === Highlight Selection (Mobile + Desktop) ===
+let hlSelectionTimeout = null;
+let hlPopupVisible = false;
+
+// Create floating button
+const floatBtn = document.createElement('button');
+floatBtn.className = 'hl-float-btn';
+floatBtn.textContent = '🖍️ 標記';
+document.body.appendChild(floatBtn);
+
+// Create color popup
+const colorPopup = document.createElement('div');
+colorPopup.className = 'hl-color-popup';
+const colorMap = {
+  yellow: 'var(--highlight-yellow)',
+  green: 'var(--highlight-green)',
+  pink: 'var(--highlight-pink)',
+  blue: 'var(--highlight-blue)'
+};
+Object.entries(colorMap).forEach(([color, bg]) => {
+  const btn = document.createElement('button');
+  btn.className = 'mini-hl-btn';
+  btn.style.background = bg;
+  btn.setAttribute('data-color', color);
+  btn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    applyHighlight(color);
+    hidePopup();
+  });
+  colorPopup.appendChild(btn);
+});
+document.body.appendChild(colorPopup);
+
+function showPopup(range) {
+  const rect = range.getBoundingClientRect();
+  const midX = rect.left + rect.width / 2;
+  const topY = rect.top + window.scrollY;
+
+  colorPopup.style.left = midX + 'px';
+  colorPopup.style.top = (topY - 12) + 'px';
+  colorPopup.classList.add('show');
+  hlPopupVisible = true;
+}
+
+function hidePopup() {
+  colorPopup.classList.remove('show');
+  floatBtn.classList.remove('show');
+  hlPopupVisible = false;
+  if (hlSelectionTimeout) {
+    clearTimeout(hlSelectionTimeout);
+    hlSelectionTimeout = null;
+  }
+}
+
+function applyHighlight(color) {
   const sel = window.getSelection();
   const text = sel.toString().trim();
   if (!text || text.length < 1) return;
-  
+
   const range = sel.getRangeAt(0);
-  
-  // Check if selection is within readingText
   const container = document.getElementById('readingText');
   if (!container.contains(range.commonAncestorContainer)) return;
-  
-  // Check if already highlighted
-  const parent = range.commonAncestorContainer.nodeType === 3 
-    ? range.commonAncestorContainer.parentElement 
+
+  const parent = range.commonAncestorContainer.nodeType === 3
+    ? range.commonAncestorContainer.parentElement
     : range.commonAncestorContainer;
   if (parent.closest('mark')) return;
-  
-  // Wrap selection in mark
+
   const mark = document.createElement('mark');
-  mark.setAttribute('data-hl', highlightColor);
-  
+  mark.setAttribute('data-hl', color);
+
   try {
     range.surroundContents(mark);
     sel.removeAllRanges();
-    
-    // Save highlight
+
     const hlId = 'hl_' + Date.now();
     mark.setAttribute('data-id', hlId);
-    highlights.push({ id: hlId, color: highlightColor, text: text.substring(0, 50) });
+    highlights.push({ id: hlId, color: color, text: text.substring(0, 50) });
     localStorage.setItem('reader-highlights', JSON.stringify(highlights));
   } catch(e) {
-    // SurroundContents fails if selection spans multiple block elements
-    // Fallback: highlight just the text node
-    const textNode = document.createTextNode(text);
-    const markEl = document.createElement('mark');
-    markEl.setAttribute('data-hl', highlightColor);
-    const hlId = 'hl_' + Date.now();
-    markEl.setAttribute('data-id', hlId);
-    markEl.appendChild(textNode);
-    
-    // Replace partial nodes is complex; just alert user
-    console.log('Complex selection — try selecting within a single paragraph.');
+    // Complex selection spanning multiple blocks — try extracting and wrapping the text node
+    try {
+      const fragment = range.extractContents();
+      const markWrap = document.createElement('mark');
+      markWrap.setAttribute('data-hl', color);
+      const hlId = 'hl_' + Date.now();
+      markWrap.setAttribute('data-id', hlId);
+      while (fragment.firstChild) {
+        markWrap.appendChild(fragment.firstChild);
+      }
+      range.insertNode(markWrap);
+      sel.removeAllRanges();
+      highlights.push({ id: hlId, color: color, text: text.substring(0, 50) });
+      localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+    } catch(e2) {
+      console.log('請在單一自然段內選擇文字');
+    }
   }
+}
+
+// Desktop: mouseup triggers popup
+document.addEventListener('mouseup', function(e) {
+  if (!highlightMode) return;
+  // Check if click was inside the popup
+  if (colorPopup.contains(e.target)) return;
+
+  if (hlSelectionTimeout) clearTimeout(hlSelectionTimeout);
+  hlSelectionTimeout = setTimeout(function() {
+    const sel = window.getSelection();
+    const text = sel.toString().trim();
+    if (!text || text.length < 2) {
+      hidePopup();
+      return;
+    }
+    const range = sel.getRangeAt(0);
+    const container = document.getElementById('readingText');
+    if (!container.contains(range.commonAncestorContainer)) {
+      hidePopup();
+      return;
+    }
+    showPopup(range);
+  }, 150);
 });
 
-// Click on existing highlight to cycle color
-document.addEventListener('click', function(e) {
+// Mobile: touchend triggers popup
+document.addEventListener('touchend', function(e) {
   if (!highlightMode) return;
+  if (colorPopup.contains(e.target)) return;
+  if (hlSelectionTimeout) clearTimeout(hlSelectionTimeout);
+  // Wait longer on mobile — selection handles need time to settle
+  hlSelectionTimeout = setTimeout(function() {
+    const sel = window.getSelection();
+    const text = sel.toString().trim();
+    if (!text || text.length < 2) {
+      hidePopup();
+      return;
+    }
+    try {
+      const range = sel.getRangeAt(0);
+      const container = document.getElementById('readingText');
+      if (!container.contains(range.commonAncestorContainer)) {
+        hidePopup();
+        return;
+      }
+      showPopup(range);
+    } catch(e) { /* no range */ }
+  }, 400);
+}, { passive: true });
+
+// Clear popup on scroll
+window.addEventListener('scroll', function() {
+  if (hlPopupVisible) hidePopup();
+}, { passive: true });
+
+// Click anywhere else to dismiss popup
+document.addEventListener('click', function(e) {
+  if (!hlPopupVisible) return;
+  if (colorPopup.contains(e.target)) return;
+  if (floatBtn.contains(e.target)) return;
+  hidePopup();
+});
+
+// === Click on existing highlight to cycle color ===
+document.addEventListener('click', function(e) {
   const mark = e.target.closest('mark');
   if (!mark) return;
-  
+  if (!highlightMode) {
+    // Even outside highlight mode, let users cycle colors
+  }
+
   const colors = ['yellow', 'green', 'pink', 'blue'];
   const current = mark.getAttribute('data-hl');
   const idx = colors.indexOf(current);
