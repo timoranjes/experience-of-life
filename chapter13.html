@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生命的經歷 — 第十三篇 對付靈</title>
+<style>
+:root {
+  --bg: oklch(0.985 0.002 80);
+  --text: oklch(0.14 0.003 260);
+  --text-secondary: oklch(0.45 0.003 260);
+  --heading: oklch(0.20 0.005 45);
+  --verse-bg: oklch(0.96 0.01 80);
+  --verse-border: oklch(0.60 0.06 45);
+  --toolbar-bg: color-mix(in oklch, var(--bg) 92%, transparent);
+  --toolbar-border: oklch(0.88 0.003 260);
+  --accent: oklch(0.38 0.05 45);
+  --accent-light: oklch(0.82 0.08 45);
+  --card-bg: oklch(1 0 0);
+  --divider: oklch(0.90 0.002 260);
+  --highlight-yellow: oklch(0.92 0.12 95);
+  --highlight-green: oklch(0.90 0.10 140);
+  --highlight-pink: oklch(0.88 0.12 15);
+  --highlight-blue: oklch(0.87 0.08 230);
+  --shadow: 0 1px 3px oklch(0 0 0 / 0.06);
+}
+
+[data-theme="dark"] {
+  --bg: oklch(0.18 0.003 260);
+  --text: oklch(0.92 0.003 80);
+  --text-secondary: oklch(0.65 0.003 260);
+  --heading: oklch(0.85 0.03 45);
+  --verse-bg: oklch(0.22 0.005 260);
+  --verse-border: oklch(0.55 0.06 45);
+  --toolbar-bg: color-mix(in oklch, var(--bg) 95%, transparent);
+  --toolbar-border: oklch(0.30 0.003 260);
+  --accent: oklch(0.75 0.08 45);
+  --accent-light: oklch(0.40 0.06 45);
+  --card-bg: oklch(0.22 0.003 260);
+  --divider: oklch(0.28 0.003 260);
+  --highlight-yellow: oklch(0.40 0.08 80);
+  --highlight-green: oklch(0.38 0.07 140);
+  --highlight-pink: oklch(0.36 0.08 15);
+  --highlight-blue: oklch(0.35 0.06 230);
+  --shadow: 0 1px 3px oklch(0 0 0 / 0.3);
+}
+
+[data-theme="sepia"] {
+  --bg: oklch(0.955 0.025 80);
+  --text: oklch(0.20 0.02 60);
+  --text-secondary: oklch(0.50 0.015 60);
+  --heading: oklch(0.25 0.03 45);
+  --verse-bg: oklch(0.92 0.03 80);
+  --verse-border: oklch(0.60 0.06 45);
+  --toolbar-bg: color-mix(in oklch, var(--bg) 92%, transparent);
+  --toolbar-border: oklch(0.82 0.02 80);
+  --accent: oklch(0.40 0.05 45);
+  --accent-light: oklch(0.80 0.07 45);
+  --card-bg: oklch(0.94 0.02 80);
+  --divider: oklch(0.85 0.015 80);
+  --highlight-yellow: oklch(0.88 0.10 90);
+  --highlight-green: oklch(0.86 0.08 140);
+  --highlight-pink: oklch(0.84 0.10 15);
+  --highlight-blue: oklch(0.83 0.07 230);
+  --shadow: 0 1px 3px oklch(0 0 0 / 0.08);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Noto Serif TC", "Source Han Serif TC", "Songti TC", "MingLiU", serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.9;
+  transition: background 0.3s, color 0.3s;
+  overflow-x: hidden;
+}
+
+/* === TOP TOOLBAR === */
+.toolbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--toolbar-bg);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-bottom: 1px solid var(--toolbar-border);
+}
+
+.toolbar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--heading);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  font-size: 18px;
+}
+.toolbar-btn:hover, .toolbar-btn:active {
+  background: var(--divider);
+  color: var(--text);
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+/* === SETTINGS PANEL === */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: oklch(0 0 0 / 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.settings-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.settings-panel {
+  position: fixed;
+  top: 0; right: 0;
+  z-index: 201;
+  width: 300px;
+  max-width: 85vw;
+  height: 100%;
+  background: var(--card-bg);
+  box-shadow: -4px 0 24px oklch(0 0 0 / 0.12);
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  overflow-y: auto;
+  padding: 24px 20px;
+}
+.settings-panel.open {
+  transform: translateX(0);
+}
+
+.settings-section {
+  margin-bottom: 28px;
+}
+
+.settings-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+
+/* Theme buttons */
+.theme-options {
+  display: flex;
+  gap: 10px;
+}
+
+.theme-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 8px;
+  border: 2px solid var(--divider);
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.theme-btn.active {
+  border-color: var(--accent);
+  background: var(--accent-light);
+}
+.theme-btn:hover {
+  border-color: var(--accent);
+}
+
+.theme-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--divider);
+}
+.theme-swatch.swatch-light { background: #f8f6f1; }
+.theme-swatch.swatch-dark { background: #1e1e2e; }
+.theme-swatch.swatch-sepia { background: #f4ecd8; }
+
+.theme-btn span {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.theme-btn.active span {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Font size slider */
+.font-size-control {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.font-size-control span:first-child { font-size: 14px; color: var(--text-secondary); }
+.font-size-control span:last-child { font-size: 22px; color: var(--text-secondary); }
+
+.font-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--divider);
+  outline: none;
+}
+.font-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: 2px solid var(--card-bg);
+  box-shadow: var(--shadow);
+}
+
+.font-size-label {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+/* Highlight color picker */
+.highlight-options {
+  display: flex;
+  gap: 12px;
+}
+
+.highlight-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.2s;
+  position: relative;
+}
+.highlight-btn:hover { transform: scale(1.15); }
+.highlight-btn.active { border-color: var(--text); transform: scale(1.15); }
+.highlight-btn::after {
+  content: '✓';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: oklch(0.2 0.01 60);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.highlight-btn.active::after { opacity: 1; }
+
+.hl-yellow { background: var(--highlight-yellow); }
+.hl-green { background: var(--highlight-green); }
+.hl-pink { background: var(--highlight-pink); }
+.hl-blue { background: var(--highlight-blue); }
+.hl-clear {
+  background: var(--card-bg);
+  border: 2px dashed var(--divider);
+}
+.hl-clear::after { color: oklch(0.5 0 0); }
+
+/* Clear all highlights */
+.clear-highlights-btn {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  border: 1px solid var(--divider);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.clear-highlights-btn:hover {
+  background: var(--divider);
+  color: var(--text);
+}
+
+/* === READING CONTENT === */
+.content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 80px 20px 120px;
+  font-size: 18px;
+  transition: font-size 0.2s;
+}
+
+.chapter-header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--divider);
+}
+
+.chapter-number {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-light);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 16px;
+}
+
+.chapter-title {
+  font-size: 1.6em;
+  font-weight: 700;
+  color: var(--heading);
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.chapter-subtitle {
+  font-size: 0.55em;
+  color: var(--text-secondary);
+  font-weight: 400;
+}
+
+/* Section headers */
+.section-header {
+  font-size: 1.15em;
+  font-weight: 700;
+  color: var(--heading);
+  margin: 36px 0 18px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--accent-light);
+}
+
+/* Verses */
+.verse {
+  background: var(--verse-bg);
+  border-left: 3px solid var(--verse-border);
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.95em;
+  line-height: 1.85;
+}
+
+.verse-label {
+  font-weight: 600;
+  color: var(--accent);
+  font-size: 0.85em;
+  margin-right: 4px;
+}
+
+/* Paragraphs */
+p {
+  margin-bottom: 16px;
+  text-align: justify;
+  text-justify: inter-character;
+}
+
+/* Highlights */
+mark {
+  border-radius: 2px;
+  padding: 1px 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+mark[data-hl="yellow"] { background: var(--highlight-yellow); }
+mark[data-hl="green"] { background: var(--highlight-green); }
+mark[data-hl="pink"] { background: var(--highlight-pink); }
+mark[data-hl="blue"] { background: var(--highlight-blue); }
+
+/* Selection highlight mode indicator */
+.highlight-mode-indicator {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  padding: 6px 16px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 2px 12px oklch(0 0 0 / 0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.highlight-mode-indicator.visible {
+  opacity: 1;
+}
+
+/* === BOTTOM TOOLBAR === */
+.bottom-bar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 8px 16px;
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+  background: var(--toolbar-bg);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border-top: 1px solid var(--toolbar-border);
+}
+
+.bottom-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  min-width: 48px;
+  min-height: 48px;
+}
+.bottom-btn:hover, .bottom-btn:active {
+  background: var(--divider);
+  color: var(--text);
+}
+.bottom-btn.active {
+  color: var(--accent);
+}
+.bottom-btn svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.bottom-btn span {
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Scroll progress bar */
+.progress-bar {
+  position: fixed;
+  top: 57px; left: 0;
+  z-index: 99;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.1s;
+  border-radius: 0 1px 1px 0;
+}
+
+/* Responsive */
+@media (min-width: 768px) {
+  .content {
+    padding: 80px 40px 120px;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP TOOLBAR -->
+<div class="toolbar">
+  <button class="toolbar-btn" onclick="scrollToTop()" title="回到頂部">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+  </button>
+  <div class="toolbar-title">生命的經歷 — 第十三篇</div>
+  <div class="toolbar-actions">
+    <button class="toolbar-btn" onclick="openSettings()" title="設定">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- SETTINGS PANEL -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="settings-panel" id="settingsPanel">
+  <!-- Theme -->
+  <div class="settings-section">
+    <div class="settings-label">主題</div>
+    <div class="theme-options">
+      <button class="theme-btn active" data-theme="light" onclick="setTheme('light')">
+        <div class="theme-swatch swatch-light"></div>
+        <span>淺色</span>
+      </button>
+      <button class="theme-btn" data-theme="sepia" onclick="setTheme('sepia')">
+        <div class="theme-swatch swatch-sepia"></div>
+        <span>羊皮</span>
+      </button>
+      <button class="theme-btn" data-theme="dark" onclick="setTheme('dark')">
+        <div class="theme-swatch swatch-dark"></div>
+        <span>深色</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Font Size -->
+  <div class="settings-section">
+    <div class="settings-label">字體大小</div>
+    <div class="font-size-control">
+      <span>A</span>
+      <input type="range" class="font-slider" id="fontSlider" min="14" max="28" value="18" oninput="setFontSize(this.value)">
+      <span style="font-size:22px">A</span>
+    </div>
+    <div class="font-size-label" id="fontSizeLabel">18px</div>
+  </div>
+
+  <!-- Highlight Color -->
+  <div class="settings-section">
+    <div class="settings-label">螢光筆顏色</div>
+    <div class="highlight-options">
+      <button class="highlight-btn hl-yellow active" data-color="yellow" onclick="setHighlightColor('yellow')"></button>
+      <button class="highlight-btn hl-green" data-color="green" onclick="setHighlightColor('green')"></button>
+      <button class="highlight-btn hl-pink" data-color="pink" onclick="setHighlightColor('pink')"></button>
+      <button class="highlight-btn hl-blue" data-color="blue" onclick="setHighlightColor('blue')"></button>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <button class="clear-highlights-btn" onclick="clearAllHighlights()">清除所有標記</button>
+  </div>
+</div>
+
+<!-- HIGHLIGHT MODE INDICATOR -->
+<div class="highlight-mode-indicator" id="hlIndicator">✏️ 選取文字以標記</div>
+
+<!-- READING CONTENT -->
+<div class="content" id="content">
+  <header class="chapter-header">
+    <div class="chapter-number">生命的經歷</div>
+    <h1 class="chapter-title">第十三篇<br>對付靈</h1>
+    <div class="chapter-subtitle">The Experience of Life — Chapter 13</div>
+  </header>
+
+  <div id="readingText">
+    <p>我們看過了聖靈的管治，現在就來看對付靈。我們把這兩個功課排在一起，是因為它們在屬靈的經歷中，也是緊緊相連的。許多時候人的靈不正、不對，就是因為他沒有接受聖靈的管治。所以聖靈的管治，常會顯明人靈的光景。同時，人也只有把靈對付好了，才能從最深處接受聖靈的管治。</p>
+
+    <h2 class="section-header">壹 聖經的根據</h2>
+
+    <div class="verse">
+      <span class="verse-label">（一）</span>詩篇五十一篇十節：「使我裡面重新有正直的靈。」這裡說到正直的靈。這不是我們原有的，常是因著神的眷顧、對付而有的。
+    </div>
+
+    <div class="verse">
+      <span class="verse-label">（二）</span>提後一章七節原文：「神賜給我們，……乃是剛強、仁愛、謹守的靈。」這裡說到一種靈，是剛強的，又是仁愛的，且是謹守的，這種靈，乃是神所賜的。
+    </div>
+
+    <div class="verse">
+      <span class="verse-label">（三）</span>加拉太六章一節原文：「當用溫柔的靈。」這裡說到溫柔的靈。這種靈能輓回被過犯所勝的人，乃是屬靈的人所有的，所以必是人經過神的對付而有的。
+    </div>
+
+    <div class="verse">
+      <span class="verse-label">（四）</span>彼前三章四節原文：「裡面存著長久溫柔安靜的靈。」這裡說到一種靈，不僅是溫柔的，且是安靜的，所以在神看是極寶貴的妝飾。這也必是經過神的對付而有的。
+    </div>
+
+    <div class="verse">
+      <span class="verse-label">（五）</span>箴言十六章十九節原文：「有一個謙卑的靈。」一個謙卑不驕傲的靈，也必是受過折磨、對付而有的。
+    </div>
+
+    <div class="verse">
+      <span class="verse-label">（六）</span>馬太五章三節原文：「靈裡貧窮。」這就是說靈裡不自滿自足，不自義自是，這也必是人受過打擊、管教而有的。
+    </div>
+
+    <div class="verse">
+      <span class="verse-label">（七）</span>林後七章一節原文：「當潔淨自己，除去……靈一切的污穢。」這裡所說的，就是對付靈，除去靈一切的污穢，使靈清潔。
+    </div>
+
+    <h2 class="section-header">貳 靈的意義</h2>
+
+    <p>我們要對付靈，必須先清楚靈究竟是什麼。在關於生命認識的十四點裡，我們曾說過，人分體、魂、靈三部分，而靈乃是人最裡面的一部分，也是人最深、最高的一部分。在這裡我們還要特別指出，靈也是人最真的一部分。可說靈就是人之真，就是人的真我。</p>
+
+    <p>一般人常說要真心待人，其實心還不夠真，因為心只是靈裡面的一部分，並且心還掛著魂。比心更深的乃是靈，所以靈比心更真。我們生活、行事，必須憑著靈，那才夠真。我們憑著靈說話，那才是說真話。我們憑靈待人，才是以真待人。就是我們屬靈的活動，像禱告、交通、講道等，也都要憑靈而作，才是真的。凡靈不動而作的，都是外面的，都是淺的，也可以說都是假的。這並不是故意裝假，乃是所用的機關不對。所以我們要學習用靈，憑靈作真人。</p>
+
+    <p>一般人最真的時候，就是大發脾氣的時候。因為人發脾氣，他的靈就出來了。人沒有生氣的時候，外面總有一套規矩，一套禮貌，真實的光景乃是包藏在裡面。等到人氣極了，忍無可忍了，實在包不住了，就不顧一切的爆炸出來，裡面感覺什麼，外面就說什麼，裡面怎樣氣，外面就怎樣講，外面所表現的，就是裡面的光景。這時，就是人的靈出來了，也就是人的真出來了。所以一個外表文雅，不常發脾氣的人，常是假的；而一個好發脾氣的人，倒常是真的。他的真，就在於他的靈出來了。總之，人最深、最真的地方，就是靈。靈乃是人之真。</p>
+
+    <h2 class="section-header">叄 對付靈的意義</h2>
+
+    <p>關乎靈，我們所該學的功課有兩面，一面是讓靈能出來，一面是使靈出來而清潔。讓靈出來，就是以前所說幾個對付的功課，也就是對付肉體、對付己、對付天然所注意的。這幾個對付的結果，就是讓靈能出來。</p>
+
+    <p>神當初對人的安排，乃是把人的靈擺在人的魂和體之上，要人憑靈而活，一面用靈接觸神，受神管理，一面用靈管制全人。但是當人墮落之後，體和魂就奪取了靈的地位，人就不憑靈活著，而憑肉體、憑魂活著了。於是人的靈，就漸漸枯萎而瀕於死寂。所以直到今天，凡沒有蒙恩的人，都是活在肉體和魂裡，他們的靈在裡面，似有似無，幾乎是沒有作用的。並且人的體因著有罪就變作肉體，魂因著有己意就變作己，因著有天然的才幹就變作天然。這些肉體、己意、天然，都緊緊的、厚厚的把靈包圍在裡面。等到神來拯救人的時候，祂的靈進到人的靈裡，就是要叫人的靈復甦、壯大起來，好使人重新憑靈而活。但人的靈既被包圍在肉體、己意、和天然裡面，並且人又是憑這些活慣了，所以神就要人藉著主十字架殺死的功效，治死這些，對付這些，破碎這些，叫這些有了裂口，然後靈才得以出來。人的靈出來了，神的靈也就被帶出來，人就可以憑靈活著，憑靈使用魂，憑靈支配體，憑靈作真人，憑靈生活行動，憑靈敬拜事奉。所以前面所說的對付肉體、對付己、對付天然，都是為要破碎人的肉體和魂，而讓靈出來。這是我們關乎靈所該學的第一面功課。</p>
+
+    <p>但我們單把靈的外圍破碎了，讓靈能出來，還不夠。因為靈出來的時候，光景對不對，正不正，單純不單純，有沒有雜質，這又是另一面的問題。我們的經歷能證實，雖然有的弟兄姊妹，實在是在那裡好好否認己，對付天然，使他們的靈能出來，但他們的靈出來了，又總是帶著一些不正當的情形，或是粗暴、狂傲，或是彎曲、不平等等。這證明他們的靈裡，還有許多神所不喜悅的雜質。</p>
+
+    <p>比方我們在前面說，人發脾氣的時候，靈容易出來，但這時出來的靈，無疑常是凶惡、仇恨、粗暴的。這就是靈不正當的光景。再比方一位弟兄，要去一個地方講道。他有一點學習，知道講的時候，不能靠外面的人，必須讓他裡面的靈出來，所以他就好好否認己，拒絕天然，結果那一次靈真是出來了，靈裡的聖靈也隨著出來了，叫人很受感動。但那一次他講的時候，卻含著一點意思，想要顯揚自己，得人的稱讚，也有一點想要與人比賽，盼望出人頭地。這些誇耀、不正當的光景，就在他靈出來的時候，也一齊出來了。所以這一次，他的靈固然是出來了，但出來的光景卻不對、不純。</p>
+
+    <p>實在說，我們的靈裡還有許多攙雜的成分，就如狂傲、自誇、彎曲、不平、詭詐、陰毒、悖逆、強項等等。那種複雜、微妙的情形，連我們自己都想不到。所以靈能不能出來固然是一個問題，但靈出來了，清潔不清潔，更是一個問題。我們對於靈，不只要使它能自由暢通的出來，還要使它出來的時候，是清潔的、單純的、正當的。這就是我們對於靈所該學的第二面功課，也就是我們在這裡所說的對付靈。總之，關於靈，一面我們要受破碎，使靈出來；一面我們要受對付，使靈清潔。所謂對付靈，就是指著後者說的。</p>
+  </div>
+</div>
+
+<!-- BOTTOM BAR -->
+<nav class="bottom-bar">
+  <button class="bottom-btn" onclick="scrollToTop()">
+    <svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
+    <span>頂部</span>
+  </button>
+  <button class="bottom-btn" id="hlToggleBtn" onclick="toggleHighlightMode()">
+    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+    <span>標記</span>
+  </button>
+  <button class="bottom-btn" onclick="openSettings()">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    <span>設定</span>
+  </button>
+</nav>
+
+<script>
+// === State ===
+let highlightMode = false;
+let highlightColor = 'yellow';
+let fontSize = parseInt(localStorage.getItem('reader-font-size')) || 18;
+let currentTheme = localStorage.getItem('reader-theme') || 'light';
+let highlights = JSON.parse(localStorage.getItem('reader-highlights') || '[]');
+
+// === Init ===
+document.addEventListener('DOMContentLoaded', () => {
+  setTheme(currentTheme, true);
+  setFontSize(fontSize, true);
+  restoreHighlights();
+  document.getElementById('fontSlider').value = fontSize;
+  document.getElementById('fontSizeLabel').textContent = fontSize + 'px';
+});
+
+// === Theme ===
+function setTheme(theme, silent) {
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('reader-theme', theme);
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.theme === theme);
+  });
+}
+
+// === Font Size ===
+function setFontSize(size, silent) {
+  fontSize = parseInt(size);
+  document.getElementById('content').style.fontSize = fontSize + 'px';
+  localStorage.setItem('reader-font-size', fontSize);
+  document.getElementById('fontSizeLabel').textContent = fontSize + 'px';
+  if (!silent) {
+    document.getElementById('fontSlider').value = fontSize;
+  }
+}
+
+// === Settings Panel ===
+function openSettings() {
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsPanel').classList.add('open');
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsPanel').classList.remove('open');
+}
+
+// === Highlight Mode ===
+function toggleHighlightMode() {
+  highlightMode = !highlightMode;
+  document.getElementById('hlToggleBtn').classList.toggle('active', highlightMode);
+  document.getElementById('hlIndicator').classList.toggle('visible', highlightMode);
+  document.body.style.cursor = highlightMode ? 'text' : '';
+  document.body.style.userSelect = highlightMode ? 'text' : '';
+}
+
+function setHighlightColor(color) {
+  highlightColor = color;
+  document.querySelectorAll('.highlight-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.color === color);
+  });
+}
+
+// === Highlight Selection ===
+document.addEventListener('mouseup', function(e) {
+  if (!highlightMode) return;
+  
+  const sel = window.getSelection();
+  const text = sel.toString().trim();
+  if (!text || text.length < 1) return;
+  
+  const range = sel.getRangeAt(0);
+  
+  // Check if selection is within readingText
+  const container = document.getElementById('readingText');
+  if (!container.contains(range.commonAncestorContainer)) return;
+  
+  // Check if already highlighted
+  const parent = range.commonAncestorContainer.nodeType === 3 
+    ? range.commonAncestorContainer.parentElement 
+    : range.commonAncestorContainer;
+  if (parent.closest('mark')) return;
+  
+  // Wrap selection in mark
+  const mark = document.createElement('mark');
+  mark.setAttribute('data-hl', highlightColor);
+  
+  try {
+    range.surroundContents(mark);
+    sel.removeAllRanges();
+    
+    // Save highlight
+    const hlId = 'hl_' + Date.now();
+    mark.setAttribute('data-id', hlId);
+    highlights.push({ id: hlId, color: highlightColor, text: text.substring(0, 50) });
+    localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+  } catch(e) {
+    // SurroundContents fails if selection spans multiple block elements
+    // Fallback: highlight just the text node
+    const textNode = document.createTextNode(text);
+    const markEl = document.createElement('mark');
+    markEl.setAttribute('data-hl', highlightColor);
+    const hlId = 'hl_' + Date.now();
+    markEl.setAttribute('data-id', hlId);
+    markEl.appendChild(textNode);
+    
+    // Replace partial nodes is complex; just alert user
+    console.log('Complex selection — try selecting within a single paragraph.');
+  }
+});
+
+// Click on existing highlight to cycle color
+document.addEventListener('click', function(e) {
+  if (!highlightMode) return;
+  const mark = e.target.closest('mark');
+  if (!mark) return;
+  
+  const colors = ['yellow', 'green', 'pink', 'blue'];
+  const current = mark.getAttribute('data-hl');
+  const idx = colors.indexOf(current);
+  const next = colors[(idx + 1) % colors.length];
+  mark.setAttribute('data-hl', next);
+});
+
+// === Restore Highlights ===
+function restoreHighlights() {
+  // Highlights are already in the DOM from previous sessions
+  // If we had a serialization system, we'd rebuild them here
+}
+
+// === Clear All Highlights ===
+function clearAllHighlights() {
+  if (!confirm('確定要清除所有標記嗎？')) return;
+  document.querySelectorAll('#readingText mark').forEach(mark => {
+    const parent = mark.parentNode;
+    parent.replaceChild(document.createTextNode(mark.textContent), mark);
+    parent.normalize();
+  });
+  highlights = [];
+  localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+}
+
+// === Scroll Progress ===
+window.addEventListener('scroll', function() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  document.getElementById('progressBar').style.width = progress + '%';
+}, { passive: true });
+
+// === Scroll to Top ===
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
