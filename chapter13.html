@@ -795,6 +795,8 @@ function setHighlightColor(color) {
 // === Highlight Selection (Mobile + Desktop) ===
 let hlSelectionTimeout = null;
 let hlPopupVisible = false;
+let savedRange = null;       // Clone of the Range at show time
+let savedRangeText = '';     // Text of the selection
 
 // Create floating button
 const floatBtn = document.createElement('button');
@@ -818,6 +820,14 @@ Object.entries(colorMap).forEach(([color, bg]) => {
   btn.setAttribute('data-color', color);
   btn.addEventListener('click', function(e) {
     e.stopPropagation();
+    e.preventDefault();
+    applyHighlight(color);
+    hidePopup();
+  });
+  // Prevent selection loss on touch
+  btn.addEventListener('touchend', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
     applyHighlight(color);
     hidePopup();
   });
@@ -826,6 +836,10 @@ Object.entries(colorMap).forEach(([color, bg]) => {
 document.body.appendChild(colorPopup);
 
 function showPopup(range) {
+  // Clone and save the range — mobile loses getSelection() on tap
+  savedRange = range.cloneRange();
+  savedRangeText = range.toString().trim();
+
   const rect = range.getBoundingClientRect();
   const midX = rect.left + rect.width / 2;
   const botY = rect.bottom + window.scrollY;
@@ -840,6 +854,8 @@ function hidePopup() {
   colorPopup.classList.remove('show');
   floatBtn.classList.remove('show');
   hlPopupVisible = false;
+  savedRange = null;
+  savedRangeText = '';
   if (hlSelectionTimeout) {
     clearTimeout(hlSelectionTimeout);
     hlSelectionTimeout = null;
@@ -847,11 +863,15 @@ function hidePopup() {
 }
 
 function applyHighlight(color) {
-  const sel = window.getSelection();
-  const text = sel.toString().trim();
-  if (!text || text.length < 1) return;
+  // Use the saved range instead of window.getSelection()
+  // (mobile clears selection when user taps the color button)
+  if (!savedRange) {
+    console.log('No saved selection — try selecting text again.');
+    return;
+  }
 
-  const range = sel.getRangeAt(0);
+  const range = savedRange;
+  const text = savedRangeText;
   const container = document.getElementById('readingText');
   if (!container.contains(range.commonAncestorContainer)) return;
 
@@ -865,14 +885,14 @@ function applyHighlight(color) {
 
   try {
     range.surroundContents(mark);
-    sel.removeAllRanges();
+    window.getSelection().removeAllRanges();
 
     const hlId = 'hl_' + Date.now();
     mark.setAttribute('data-id', hlId);
     highlights.push({ id: hlId, color: color, text: text.substring(0, 50) });
     localStorage.setItem('reader-highlights', JSON.stringify(highlights));
   } catch(e) {
-    // Complex selection spanning multiple blocks — try extracting and wrapping the text node
+    // Complex selection spanning multiple blocks — extract + wrap
     try {
       const fragment = range.extractContents();
       const markWrap = document.createElement('mark');
@@ -883,13 +903,16 @@ function applyHighlight(color) {
         markWrap.appendChild(fragment.firstChild);
       }
       range.insertNode(markWrap);
-      sel.removeAllRanges();
+      window.getSelection().removeAllRanges();
       highlights.push({ id: hlId, color: color, text: text.substring(0, 50) });
       localStorage.setItem('reader-highlights', JSON.stringify(highlights));
     } catch(e2) {
       console.log('請在單一自然段內選擇文字');
     }
   }
+
+  savedRange = null;
+  savedRangeText = '';
 }
 
 // Desktop: mouseup triggers popup
