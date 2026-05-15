@@ -475,6 +475,22 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
 .hl-color-popup .mini-hl-btn:hover {
   transform: scale(1.2);
 }
+.hl-color-popup .mini-hl-btn.hl-remove {
+  background: transparent;
+  color: #e53e3e;
+  border: 2px solid #e53e3e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+.hl-color-popup .hl-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--text-secondary, rgba(0,0,0,0.15));
+  opacity: 0.3;
+}
 
 /* === BOTTOM TOOLBAR === */
 .bottom-bar {
@@ -903,8 +919,31 @@ document.addEventListener('mouseup', function(e) {
   }, 150);
 });
 
-// Mobile: touchend triggers popup
+// Mobile: touch on existing mark to edit/remove
 document.addEventListener('touchend', function(e) {
+  const mark = e.target.closest('mark');
+  if (!mark) return;
+  if (colorPopup.contains(e.target)) return;
+
+  // Tap on existing mark — show popup for editing
+  e.preventDefault();
+  savedRange = null;
+  savedRangeText = mark.textContent;
+  savedExistingMark = mark;
+
+  const rect = mark.getBoundingClientRect();
+  const midX = rect.left + rect.width / 2;
+  const botY = rect.bottom + window.scrollY;
+  colorPopup.style.left = midX + 'px';
+  colorPopup.style.top = (botY + 12) + 'px';
+  colorPopup.classList.add('show');
+  hlPopupVisible = true;
+}, { passive: false });
+
+// Mobile: touchend triggers popup (for new selections)
+document.addEventListener('touchend', function(e) {
+  // If tapping an existing mark, let the handler above deal with it
+  if (e.target.closest('mark')) return;
   if (colorPopup.contains(e.target)) return;
   if (hlSelectionTimeout) clearTimeout(hlSelectionTimeout);
   // Wait longer on mobile — selection handles need time to settle
@@ -937,6 +976,7 @@ document.addEventListener('click', function(e) {
   if (!hlPopupVisible) return;
   if (colorPopup.contains(e.target)) return;
   if (floatBtn.contains(e.target)) return;
+  if (e.target.closest('mark')) return;
   hidePopup();
 });
 
@@ -961,16 +1001,8 @@ document.addEventListener('click', function(e) {
 
 // === Remove button in popup ===
 const removeBtn = document.createElement('button');
-removeBtn.className = 'mini-hl-btn';
-removeBtn.innerHTML = '✕';
-removeBtn.style.background = 'transparent';
-removeBtn.style.border = '2px solid #e53e3e';
-removeBtn.style.color = '#e53e3e';
-removeBtn.style.display = 'flex';
-removeBtn.style.alignItems = 'center';
-removeBtn.style.justifyContent = 'center';
-removeBtn.style.fontSize = '14px';
-removeBtn.style.fontWeight = '700';
+removeBtn.className = 'mini-hl-btn hl-remove';
+removeBtn.textContent = '✕';
 removeBtn.addEventListener('click', function(e) {
   e.stopPropagation();
   e.preventDefault();
@@ -986,12 +1018,17 @@ removeBtn.addEventListener('touchend', function(e) {
 
 // Add divider before remove button
 const divider = document.createElement('span');
-divider.style.cssText = 'width:1px;height:24px;background:var(--text-secondary,rgba(0,0,0,0.15));opacity:0.3;';
+divider.className = 'hl-divider';
 colorPopup.appendChild(divider);
 colorPopup.appendChild(removeBtn);
 
 function removeExistingHighlight() {
   if (savedExistingMark) {
+    const markId = savedExistingMark.getAttribute('data-id');
+    if (markId) {
+      highlights = highlights.filter(h => h.id !== markId);
+      localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+    }
     const parent = savedExistingMark.parentNode;
     parent.replaceChild(document.createTextNode(savedExistingMark.textContent), savedExistingMark);
     parent.normalize();
