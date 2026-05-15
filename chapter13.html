@@ -978,11 +978,14 @@ document.addEventListener('click', function(e) {
 });
 
 // === Click on existing highlight to cycle color ===
+let hlWasLongPress = false;
+
 document.addEventListener('click', function(e) {
   const mark = e.target.closest('mark');
   if (!mark) return;
-  if (!highlightMode) {
-    // Even outside highlight mode, let users cycle colors
+  if (hlWasLongPress) {
+    hlWasLongPress = false;
+    return; // long-press already handled, skip color cycling
   }
 
   const colors = ['yellow', 'green', 'pink', 'blue'];
@@ -990,6 +993,72 @@ document.addEventListener('click', function(e) {
   const idx = colors.indexOf(current);
   const next = colors[(idx + 1) % colors.length];
   mark.setAttribute('data-hl', next);
+});
+
+// === Long-press on highlight to remove ===
+let hlPressTimer = null;
+let hlPressTarget = null;
+const removePopup = document.createElement('div');
+removePopup.className = 'hl-float-btn';
+removePopup.textContent = '✕ 移除';
+removePopup.style.background = '#e53e3e';
+removePopup.style.zIndex = '152';
+document.body.appendChild(removePopup);
+
+document.addEventListener('touchstart', function(e) {
+  const mark = e.target.closest('mark');
+  if (!mark) return;
+  hlPressTarget = mark;
+  hlPressTimer = setTimeout(function() {
+    // Long press — show remove button
+    hlWasLongPress = true;
+    const rect = mark.getBoundingClientRect();
+    const midX = rect.left + rect.width / 2;
+    const botY = rect.bottom + window.scrollY;
+    removePopup.style.left = midX + 'px';
+    removePopup.style.top = (botY + 10) + 'px';
+    removePopup.classList.add('show');
+    // Haptic feedback if available
+    if (navigator.vibrate) navigator.vibrate(30);
+  }, 500);
+}, { passive: true });
+
+document.addEventListener('touchend', function(e) {
+  if (hlPressTimer) {
+    clearTimeout(hlPressTimer);
+    hlPressTimer = null;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+  if (hlPressTimer) {
+    clearTimeout(hlPressTimer);
+    hlPressTimer = null;
+  }
+}, { passive: true });
+
+removePopup.addEventListener('click', function(e) {
+  e.stopPropagation();
+  e.preventDefault();
+  if (hlPressTarget) {
+    const parent = hlPressTarget.parentNode;
+    parent.replaceChild(document.createTextNode(hlPressTarget.textContent), hlPressTarget);
+    parent.normalize();
+    hlPressTarget = null;
+  }
+  removePopup.classList.remove('show');
+  hlWasLongPress = false;
+});
+
+// Dismiss remove popup on scroll or tap elsewhere
+window.addEventListener('scroll', function() {
+  removePopup.classList.remove('show');
+}, { passive: true });
+
+document.addEventListener('click', function(e) {
+  if (!removePopup.contains(e.target)) {
+    removePopup.classList.remove('show');
+  }
 });
 
 // === Restore Highlights ===
