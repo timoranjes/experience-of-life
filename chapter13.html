@@ -446,17 +446,17 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
   box-shadow: 0 3px 12px oklch(0 0 0 / 0.25);
   cursor: pointer;
   white-space: nowrap;
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, 0);
   transition: transform 0.15s, opacity 0.15s;
 }
 .hl-float-btn::after {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 .hl-float-btn.show {
   display: block;
@@ -471,7 +471,7 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
   background: var(--card-bg);
   border-radius: 16px;
   box-shadow: 0 4px 20px oklch(0 0 0 / 0.15);
-  transform: translate(-50%, -100%);
+  transform: translate(-50%, 0);
   gap: 8px;
   align-items: center;
 }
@@ -481,11 +481,11 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
 .hl-color-popup::after {
   content: '';
   position: absolute;
-  top: 100%;
+  bottom: 100%;
   left: 50%;
   transform: translateX(-50%);
   border: 6px solid transparent;
-  border-top-color: var(--card-bg);
+  border-bottom-color: var(--card-bg);
 }
 .hl-color-popup .mini-hl-btn {
   width: 28px;
@@ -828,10 +828,10 @@ document.body.appendChild(colorPopup);
 function showPopup(range) {
   const rect = range.getBoundingClientRect();
   const midX = rect.left + rect.width / 2;
-  const topY = rect.top + window.scrollY;
+  const botY = rect.bottom + window.scrollY;
 
   colorPopup.style.left = midX + 'px';
-  colorPopup.style.top = (topY - 12) + 'px';
+  colorPopup.style.top = (botY + 12) + 'px';
   colorPopup.classList.add('show');
   hlPopupVisible = true;
 }
