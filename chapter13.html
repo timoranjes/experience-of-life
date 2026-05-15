@@ -171,8 +171,7 @@ body {
   font-size: 13px;
   font-weight: 600;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   margin-bottom: 12px;
 }
 
@@ -408,28 +407,6 @@ mark[data-hl="green"] { background: var(--highlight-green); }
 mark[data-hl="pink"] { background: var(--highlight-pink); }
 mark[data-hl="blue"] { background: var(--highlight-blue); }
 
-/* Selection highlight mode indicator */
-.highlight-mode-indicator {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 90;
-  padding: 6px 16px;
-  background: var(--accent);
-  color: #fff;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  box-shadow: 0 2px 12px oklch(0 0 0 / 0.2);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s;
-}
-.highlight-mode-indicator.visible {
-  opacity: 1;
-}
-
 /* Floating highlight button for mobile */
 .hl-float-btn {
   position: absolute;
@@ -506,7 +483,7 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
   z-index: 100;
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: center;
   padding: 8px 16px;
   padding-bottom: max(8px, env(safe-area-inset-bottom));
   background: var(--toolbar-bg);
@@ -645,15 +622,11 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
   </div>
 </div>
 
-<!-- HIGHLIGHT MODE INDICATOR -->
-<div class="highlight-mode-indicator" id="hlIndicator">✏️ 選取文字以標記</div>
-
 <!-- READING CONTENT -->
 <div class="content" id="content">
   <header class="chapter-header">
     <div class="chapter-number">生命的經歷</div>
     <h1 class="chapter-title">第十三篇<br>對付靈</h1>
-    <div class="chapter-subtitle">生命的經歷 — 第十三篇</div>
   </header>
 
   <div id="readingText">
@@ -717,19 +690,10 @@ mark[data-hl="blue"] { background: var(--highlight-blue); }
     <svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg>
     <span>頂部</span>
   </button>
-  <button class="bottom-btn" id="hlToggleBtn" onclick="toggleHighlightMode()">
-    <svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-    <span>標記</span>
-  </button>
-  <button class="bottom-btn" onclick="openSettings()">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-    <span>設定</span>
-  </button>
 </nav>
 
 <script>
 // === State ===
-let highlightMode = false;
 let highlightColor = 'yellow';
 let fontSize = parseInt(localStorage.getItem('reader-font-size')) || 18;
 let currentTheme = localStorage.getItem('reader-theme') || 'light';
@@ -776,15 +740,7 @@ function closeSettings() {
   document.getElementById('settingsPanel').classList.remove('open');
 }
 
-// === Highlight Mode ===
-function toggleHighlightMode() {
-  highlightMode = !highlightMode;
-  document.getElementById('hlToggleBtn').classList.toggle('active', highlightMode);
-  document.getElementById('hlIndicator').classList.toggle('visible', highlightMode);
-  document.body.style.cursor = highlightMode ? 'text' : '';
-  document.body.style.userSelect = highlightMode ? 'text' : '';
-}
-
+// === Highlight Color (in settings) ===
 function setHighlightColor(color) {
   highlightColor = color;
   document.querySelectorAll('.highlight-btn').forEach(btn => {
@@ -926,7 +882,6 @@ function applyHighlight(color) {
 
 // Desktop: mouseup triggers popup
 document.addEventListener('mouseup', function(e) {
-  if (!highlightMode) return;
   // Check if click was inside the popup
   if (colorPopup.contains(e.target)) return;
 
@@ -950,7 +905,6 @@ document.addEventListener('mouseup', function(e) {
 
 // Mobile: touchend triggers popup
 document.addEventListener('touchend', function(e) {
-  if (!highlightMode) return;
   if (colorPopup.contains(e.target)) return;
   if (hlSelectionTimeout) clearTimeout(hlSelectionTimeout);
   // Wait longer on mobile — selection handles need time to settle
