@@ -836,11 +836,27 @@ function hidePopup() {
   }
 }
 
+function saveHighlights() {
+  localStorage.setItem('reader-readingHtml', document.getElementById('readingText').innerHTML);
+  // Also update the legacy array for backwards compat
+  const marks = document.querySelectorAll('#readingText mark');
+  highlights = [];
+  marks.forEach(m => {
+    highlights.push({
+      id: m.getAttribute('data-id') || 'hl_legacy',
+      color: m.getAttribute('data-hl') || 'yellow',
+      text: m.textContent.substring(0, 50)
+    });
+  });
+  localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+}
+
 function applyHighlight(color) {
   // Case 1: Editing an existing highlight
   if (savedExistingMark) {
     savedExistingMark.setAttribute('data-hl', color);
     savedExistingMark = null;
+    saveHighlights();
     return;
   }
 
@@ -870,8 +886,7 @@ function applyHighlight(color) {
 
     const hlId = 'hl_' + Date.now();
     mark.setAttribute('data-id', hlId);
-    highlights.push({ id: hlId, color: color, text: text.substring(0, 50) });
-    localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+    saveHighlights();
   } catch(e) {
     // Complex selection spanning multiple blocks — extract + wrap
     try {
@@ -885,8 +900,7 @@ function applyHighlight(color) {
       }
       range.insertNode(markWrap);
       window.getSelection().removeAllRanges();
-      highlights.push({ id: hlId, color: color, text: text.substring(0, 50) });
-      localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+      saveHighlights();
     } catch(e2) {
       console.log('請在單一自然段內選擇文字');
     }
@@ -1024,22 +1038,20 @@ colorPopup.appendChild(removeBtn);
 
 function removeExistingHighlight() {
   if (savedExistingMark) {
-    const markId = savedExistingMark.getAttribute('data-id');
-    if (markId) {
-      highlights = highlights.filter(h => h.id !== markId);
-      localStorage.setItem('reader-highlights', JSON.stringify(highlights));
-    }
     const parent = savedExistingMark.parentNode;
     parent.replaceChild(document.createTextNode(savedExistingMark.textContent), savedExistingMark);
     parent.normalize();
     savedExistingMark = null;
+    saveHighlights();
   }
 }
 
 // === Restore Highlights ===
 function restoreHighlights() {
-  // Highlights are already in the DOM from previous sessions
-  // If we had a serialization system, we'd rebuild them here
+  const saved = localStorage.getItem('reader-readingHtml');
+  if (saved) {
+    document.getElementById('readingText').innerHTML = saved;
+  }
 }
 
 // === Clear All Highlights ===
@@ -1050,8 +1062,7 @@ function clearAllHighlights() {
     parent.replaceChild(document.createTextNode(mark.textContent), mark);
     parent.normalize();
   });
-  highlights = [];
-  localStorage.setItem('reader-highlights', JSON.stringify(highlights));
+  saveHighlights();
 }
 
 // === Scroll Progress ===
